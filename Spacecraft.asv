@@ -73,12 +73,12 @@ end
 %yaw, phase 2
 r2=-phi_yaw(index)/yaw_time; %[rad/s]
 r_dot2=-2*phi_yaw(index)/(yaw_time^2);
-C1=r_dot1*yaw_torque_time-1/2*r_dot2;
+C1=r_dot1-1/2*r_dot2;
 C2=phi_yaw(index)-1/8*r_dot2-1/2*C1;
 for i=index+1:length(t_yaw)
      phi_yaw(i)=1/2*r_dot2*t_yaw(i)^2+C1*t_yaw(i)+C2;
-     H_yaw(i)=Izz*r_dot2*t_yaw(i);
-     T_yaw(i)=Izz*r_dot2;
+     H_yaw(i)=r_dot2*t_yaw(i)+C1;
+     T_yaw(i)=r_dot2;
 end
 r=max([r1;r2]);
 
