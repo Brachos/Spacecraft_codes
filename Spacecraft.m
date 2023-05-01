@@ -65,21 +65,23 @@ A = [sin(beta) 0 -sin(beta) 0;
 [Iw_pitch,phi_pitch,H_pitch,T_pitch,t_pitch] = maneuver (max_speed,pitch_time_change,Iyy,30*pi/180,beta,"Pitch");
 
 %% 1.3) Yaw
-% The yaw motion can be seperated into two phases. First, a constant
+% The yaw motion can be seperated into three phases. First, a constant
 % torque is applied to the spacecraft during 0.5s. It will cause the
 % spacecraft to rotate by a certain angle. At the end of the 0.5s, the
 % spacecraft will have a certain velocity and will have to go back to rest
 % in 5s. It will also need to retrieve its initial position by rotating of
 % the same angle as in the first phase but negative this time. Its angular
 % velocity will thus be positive. We have the following relation:
-% Omega1=Omega2=Omega3=Omega4.
-[Iw_yaw,phi_yaw,H_yaw,T_yaw,t_yaw] = maneuver (max_speed,yaw_time,Izz,pi,beta,"Yaw");
+% Omega1=Omega2=Omega3=Omega4. The last two phases are similar to the ones
+% for pitch and roll.
+[Iw_yaw,phi_yaw,H_yaw,T_yaw,t_yaw] = maneuver (max_speed,yaw_time,Izz,0,beta,"Yaw");
 
 %% 1.4) Wheel inertia and dimensions 
 Iw = max([Iw_roll Iw_pitch Iw_yaw]);
-[Iw,phi_roll,H_roll,T_roll,t_roll] = maneuver (max_speed,roll_time_change,Ixx,pi/2,beta,"Roll",Iw);
+[Iw,phi_roll,H_roll,T_roll,t_roll] = maneuver (4200*pi/30,roll_time_change,Ixx,pi/2,beta,"Roll",Iw);
+%[Iw,phi_roll,H_roll,T_roll,t_roll] = maneuver (max_speed,roll_time_change,Ixx,pi/2,beta,"Roll",Iw);
 [Iw,phi_pitch,H_pitch,T_pitch,t_pitch] = maneuver (max_speed,pitch_time_change,Iyy,30*pi/180,beta,"Pitch",Iw);
-[Iw,phi_yaw,H_yaw,T_yaw,t_yaw] = maneuver (max_speed,yaw_time,Izz,pi,beta,"Yaw",Iw);
+[Iw,phi_yaw,H_yaw,T_yaw,t_yaw] = maneuver (800*pi/30,yaw_time,Izz,0,beta,"Yaw",Iw);
 % assuming a radius 3 times larger than the height of the wheel.
 h=(2*Iw/(81*pi*steel_dens))^(1/5);
 R=3*h;
