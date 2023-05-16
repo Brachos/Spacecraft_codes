@@ -9,7 +9,7 @@ max_speed = 7000*2*pi/60; % in [rad/s]
 beta = 63.4*pi/180; % in RADIANS
 int_resist = 50; % in OHMS
 torque_const = 1; %[Nm/A]
-damp_fact = 1e-4; %[Nm/(rad/s)]
+c = 1e-4; %[Nm/(rad/s)]
 steel_dens = 8000; %[kg/m^3]
 
 % Inertia
@@ -42,55 +42,6 @@ A = [sin(beta) 0 -sin(beta) 0;
     0 sin(beta) 0 -sin(beta);
     cos(beta) cos(beta) cos(beta) cos(beta)];
 
-% w = H/10; % width, in METERS
-% R = 2*w; % radius, in METERS
-%M = steel_dens * pi * R^2 * w; %[kg]
-%Iw = 1/2 * M * R^2; %inertia of the wheel, in [kg m^2]
-
-% %% 1.1) Find the inertia of the wheel.
-% p = roll_change_angle/roll_time_change; %[rad/s]
-% q = pitch_change_angle/pitch_time_change; %[rad/s]
-% t_yaw=0:0.1:yaw_torque_time+yaw_time;
-% index=find(t_yaw==yaw_torque_time);
-% phi_yaw=zeros(1,length(t_yaw));
-% H_yaw=zeros(1,length(t_yaw));
-% T_yaw=zeros(1,length(t_yaw));
-% r_dot1=yaw_torque/Izz;
-% yaw_angle_change1=r_dot1*yaw_torque_time/2;
-% r1 = yaw_angle_change1/yaw_torque_time; %[rad/s]
-% for i=1:index
-%      phi_yaw(i)=1/2*r_dot1*t_yaw(i)^2;
-%      H_yaw(i)=Izz*r_dot1*t_yaw(i);
-%      T_yaw(i)=yaw_torque; 
-% end
-% %yaw, phase 2
-% r2=-phi_yaw(index)/yaw_time; %[rad/s]
-% r_dot2=-2*phi_yaw(index)/(yaw_time^2);
-% C1=r_dot1-1/2*r_dot2;
-% C2=1/8*(r_dot1-r_dot2)-1/2*C1;
-% for i=index+1:length(t_yaw)
-%      phi_yaw(i)=1/2*r_dot2*t_yaw(i)^2+C1*t_yaw(i)+C2;
-%      H_yaw(i)=Izz*r_dot2*t_yaw(i);
-%      T_yaw(i)=Izz*r_dot2;
-% end
-% r=max([r1;r2]);
-% 
-% omega = [p; q; r];
-% 
-% %H_min = [Ixx*p; Iyy*q; Izz*r] + A*[Iw*max_speed; Iw*max_speed; Iw*max_speed; Iw*max_speed];
-% 
-% %roll
-% Iw_roll=p*Ixx/(2*max_speed*sin(beta));
-% %pitch
-% Iw_pitch=q*Iyy/(2*max_speed*sin(beta));
-% %yaw
-% Iw_yaw=r*Izz/(4*max_speed*cos(beta));
-% 
-% Iw=max([Iw_roll;Iw_pitch;Iw_yaw]);
-% 
-% %deduce dimension of the wheels
-% h=(2*Iw/(81*pi*steel_dens))^(1/5);
-% R=3*h;
 
 %% 1.1) Roll
 % The roll motion is operated over 3s, meaning that the spacecraft has to
@@ -101,7 +52,7 @@ A = [sin(beta) 0 -sin(beta) 0;
 % clockwise, its angular velocity is thus negative. In this manner, Omega1
 % will first go from 0 to -7000 RPM and then from -7000 RPM back to zero.
 % Each phase lasts 1.5 s.
-[Iw_roll,phi_roll,H_roll,T_roll,t_roll] = maneuver (max_speed,roll_time_change,Ixx,pi/2,beta);
+[phi_roll,Iw_roll,H_roll,T_roll,t_roll,p] = maneuver (max_speed,roll_time_change,Ixx,beta,roll_change_angle/2,"Roll");
 %% 1.2) Pitch
 % The pitch motion is operated over 5s, meaning that the spacecraft has to
 % go back to rest once the 5s are over. Two reaction wheels are
@@ -111,39 +62,26 @@ A = [sin(beta) 0 -sin(beta) 0;
 % clockwise, its angular velocity is thus negative. In this manner, Omega1
 % will first go from 0 to -7000 RPM and then from -7000 RPM back to zero.
 % Each phase lasts 2.5 s.
-[Iw_pitch,phi_pitch,H_pitch,T_pitch,t_pitch] = maneuver (max_speed,pitch_time_change,Iyy,30*pi/180,beta);
-
+[phi_pitch,Iw_pitch,H_pitch,T_pitch,t_pitch,q] = maneuver (max_speed,pitch_time_change,Iyy,beta,pitch_change_angle/2,"Pitch");
 %% 1.3) Yaw
-% The yaw motion can be seperated into two phases. First, a constant
+% The yaw motion can be seperated into three phases. First, a constant
 % torque is applied to the spacecraft during 0.5s. It will cause the
 % spacecraft to rotate by a certain angle. At the end of the 0.5s, the
 % spacecraft will have a certain velocity and will have to go back to rest
 % in 5s. It will also need to retrieve its initial position by rotating of
 % the same angle as in the first phase but negative this time. Its angular
 % velocity will thus be positive. We have the following relation:
-% Omega1=Omega2=Omega3=Omega4.
-
+% Omega1=Omega2=Omega3=Omega4. The last two phases are similar to the ones
+% for pitch and roll.
 %Phase 1, the objective is to find the velocity and position of the
 %spacecraft after 0.5s.
-zdot1=yaw_torque/Izz;
-t_yaw1=0:0.1:yaw_torque_time;
-z1=zdot1.*t_yaw1; %angular velocity of the spacecraft over 0.5s
-phi_yaw1=1/2*zdot1*yaw_torque_time.^2; % rotation angle o
+phi_man_yaw=1/2*yaw_torque/Izz*yaw_torque_time^2;
+[phi_yaw,Iw_yaw,H_yaw,T_yaw,t_yaw,z] = maneuver (max_speed,yaw_time,Izz,beta,phi_man_yaw/2,"Yaw");
 
 
-%% 1.4) Wheel inertia and dimensions 
-Iw = max([Iw_roll Iw_pitch]);
-[Iw,phi_roll,H_roll,T_roll,t_roll] = maneuver (max_speed,roll_time_change,Ixx,pi/2,beta,Iw);
-[Iw,phi_pitch,H_pitch,T_pitch,t_pitch] = maneuver (max_speed,pitch_time_change,Iyy,30*pi/180,beta,Iw);
-
-% assuming a radius 3 times larger than the height of the wheel.
-h=(2*Iw/(81*pi*steel_dens))^(1/5);
-R=3*h;
-
-fprintf('The diameter of the wheel is equal to %.2f cm and its heigh to %.2f cm \n',R*100,h*100);
-%% 1.5) Plot profiles
+%% 1.4) Plot profiles
 figure
-sgtitle("Roll with I$_w$="+Iw+" and $\phi_{end}$="+phi_roll(end)*180/pi,'interpreter','latex','Fontsize',pt);
+sgtitle("Roll with I$_w$="+Iw_roll+" and $\phi_{end}$="+phi_roll(end)*180/pi,'interpreter','latex','Fontsize',pt);
 subplot(3,1,1);
 plot(t_roll,phi_roll*180/pi);
 ylabel('$\phi$','interpreter','latex','Fontsize',pt);
@@ -162,7 +100,7 @@ xlabel('t [s]','interpreter','latex','Fontsize',pt);
 
 
 figure
-sgtitle("Pitch with I$_w$="+Iw+" and $\phi_{end}$="+phi_pitch(end)*180/pi,'interpreter','latex','Fontsize',pt);
+sgtitle("Pitch with I$_w$="+Iw_pitch+" and $\phi_{end}$="+phi_pitch(end)*180/pi,'interpreter','latex','Fontsize',pt);
 subplot(3,1,1);
 plot(t_pitch,phi_pitch*180/pi);
 ylabel('$\phi$','interpreter','latex','Fontsize',pt);
@@ -179,21 +117,59 @@ title('Torque vs time');
 ylabel('T [Nm]','interpreter','latex','Fontsize',pt);
 xlabel('t [s]','interpreter','latex','Fontsize',pt);
 
-%% 1.4) Yaw
 figure
-sgtitle('Yaw');
+sgtitle("Yaw with I$_w$="+Iw_yaw+" and $\phi_{end}$="+phi_yaw(end)*180/pi,'interpreter','latex','Fontsize',pt);
 subplot(3,1,1);
 plot(t_yaw,phi_yaw*180/pi);
-ylabel('$\phi$[°]','interpreter','latex','Fontsize',pt);
+ylabel('$\phi$','interpreter','latex','Fontsize',pt);
 xlabel('t [s]','interpreter','latex','Fontsize',pt);
+xlim([0 5.5]);
 title('Angle of rotation vs time');
 subplot(3,1,2);
 plot(t_yaw,H_yaw);
 title('Angular momentum vs time');
 ylabel('H [Nms]','interpreter','latex','Fontsize',pt);
 xlabel('t [s]','interpreter','latex','Fontsize',pt);
+xlim([0 5.5]);
 subplot(3,1,3);
 plot(t_yaw,T_yaw);
 title('Torque vs time');
 ylabel('T [Nm]','interpreter','latex','Fontsize',pt);
 xlabel('t [s]','interpreter','latex','Fontsize',pt);
+xlim([0 5.5]);
+%% 1.5) Wheel inertia and dimensions 
+Iw = max([Iw_roll Iw_pitch Iw_yaw]);
+% [phi_roll2,Iw,H_roll2,T_roll2,t_roll2] = maneuver (max_speed,roll_time_change,Ixx,roll_change_angle/2,beta,"Roll",Iw);
+% %[Iw,phi_roll,H_roll,T_roll,t_roll] = maneuver (max_speed,roll_time_change,Ixx,pi/2,beta,"Roll",Iw);
+% [phi_pitch2,Iw,H_pitch2,T_pitch2,t_pitch2] = maneuver (max_speed,pitch_time_change,Iyy,pitch_change_angle/2,beta,"Pitch",Iw);
+% [phi_yaw2,Iw,H_yaw2,T_yaw2,t_yaw2] = maneuver (max_speed,yaw_time,Izz,beta,phi_man_yaw/2,"Yaw",Iw);
+% assuming a radius 3 times larger than the height of the wheel.
+h=(2*Iw/(81*pi*steel_dens))^(1/5);
+R=3*h;
+
+fprintf('The diameter of the wheel is equal to %.2f cm and its height to %.2f cm \n',R*100,h*100);
+%% 1.6) Compute current and voltage needed
+N=30; % ???????? justifier valeur.
+% Roll. Assumptions: i1=-i3, e1=-e3, omega1=-omega3 and omega1,max=-7000RPM
+pdot=2*roll_change_angle/roll_time_change^2;
+i_roll=Ixx*pdot/(2*N*sin(beta));
+pmax=p(find(t_roll==roll_time_change/2,1,'first'));
+e_roll=int_resist*i_roll+N*pmax*sin(beta)+N*max_speed;
+% Pitch. Same assumptions as roll 
+qdot=2*pitch_change_angle/pitch_time_change^2;
+i_pitch=Iyy*qdot/(2*N*sin(beta));
+qmax=q(find(t_pitch==pitch_time_change/2,1,'first'));
+e_pitch=int_resist*i_pitch+N*qmax*sin(beta)+N*max_speed;
+% Yaw
+zdot=(yaw_torque/Izz+2*phi_man_yaw/yaw_time^2);
+i_yaw=Izz*zdot/(4*N*cos(beta));
+zmax=z(find(t_yaw==yaw_time/2,1,'first'));
+e_yaw=int_resist*i_yaw+N*zmax*cos(beta)+2*N*max_speed;
+%% 2) State space representation
+
+%2.1) Roll
+Ar=[0,1;0,sin(beta)/Ixx*(N^2/R+c)*(-2*sin(beta)-Ixx/(Iw*sin(beta)))];
+Br=[0;sin(beta)*N/(Ixx*R)];
+Cr=[1
+%2.2) Pitch
+%2.3) Yaw
