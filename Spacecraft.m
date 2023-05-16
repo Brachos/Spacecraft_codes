@@ -1,9 +1,8 @@
 % Project Spacecraft Control : Mathias BRACH and Lucie LINOTTE
 clc
-clear all
+clear
 close all
-
-pt=11;
+FigSet;
 % Data and constants
 max_speed = 7000*2*pi/60; % in [rad/s]
 beta = 63.4*pi/180; % in RADIANS
@@ -81,53 +80,70 @@ phi_man_yaw=1/2*yaw_torque/Izz*yaw_torque_time^2;
 
 %% 1.4) Plot profiles
 figure
+<<<<<<< HEAD
 sgtitle("Roll with I$_w$="+Iw_roll+" and $\phi_{end}$="+phi_roll(end)*180/pi,'interpreter','latex','Fontsize',pt);
+=======
+sgtitle("Roll with I$_w$="+Iw+" and $\phi_{end}$="+phi_roll(end)*180/pi);
+>>>>>>> main
 subplot(3,1,1);
 plot(t_roll,phi_roll*180/pi);
-ylabel('$\phi$','interpreter','latex','Fontsize',pt);
-xlabel('t [s]','interpreter','latex','Fontsize',pt);
+ylabel('$\phi$');
+xlabel('t [s]');
 title('Angle of rotation vs time');
 subplot(3,1,2);
 plot(t_roll,H_roll);
 title('Angular momentum vs time');
-ylabel('H [Nms]','interpreter','latex','Fontsize',pt);
-xlabel('t [s]','interpreter','latex','Fontsize',pt);
+ylabel('H [Nms]');
+xlabel('t [s]');
 subplot(3,1,3);
 plot(t_roll,T_roll);
 title('Torque vs time');
-ylabel('T [Nm]','interpreter','latex','Fontsize',pt);
-xlabel('t [s]','interpreter','latex','Fontsize',pt);
+ylabel('T [Nm]');
+xlabel('t [s]');
 
 
 figure
+<<<<<<< HEAD
 sgtitle("Pitch with I$_w$="+Iw_pitch+" and $\phi_{end}$="+phi_pitch(end)*180/pi,'interpreter','latex','Fontsize',pt);
+=======
+sgtitle("Pitch with I$_w$="+Iw+" and $\phi_{end}$="+phi_pitch(end)*180/pi);
+>>>>>>> main
 subplot(3,1,1);
 plot(t_pitch,phi_pitch*180/pi);
-ylabel('$\phi$','interpreter','latex','Fontsize',pt);
-xlabel('t [s]','interpreter','latex','Fontsize',pt);
+ylabel('$\phi$');
+xlabel('t [s]');
 title('Angle of rotation vs time');
 subplot(3,1,2);
 plot(t_pitch,H_pitch);
 title('Angular momentum vs time');
-ylabel('H [Nms]','interpreter','latex','Fontsize',pt);
-xlabel('t [s]','interpreter','latex','Fontsize',pt);
+ylabel('H [Nms]');
+xlabel('t [s]');
 subplot(3,1,3);
 plot(t_pitch,T_pitch);
 title('Torque vs time');
-ylabel('T [Nm]','interpreter','latex','Fontsize',pt);
-xlabel('t [s]','interpreter','latex','Fontsize',pt);
+ylabel('T [Nm]');
+xlabel('t [s]');
 
 figure
+<<<<<<< HEAD
 sgtitle("Yaw with I$_w$="+Iw_yaw+" and $\phi_{end}$="+phi_yaw(end)*180/pi,'interpreter','latex','Fontsize',pt);
 subplot(3,1,1);
 plot(t_yaw,phi_yaw*180/pi);
 ylabel('$\phi$','interpreter','latex','Fontsize',pt);
 xlabel('t [s]','interpreter','latex','Fontsize',pt);
 xlim([0 5.5]);
+=======
+sgtitle("Yaw with I$_w$="+Iw+" and $\phi_{end}$="+phi_yaw(end)*180/pi);
+subplot(3,1,1);
+plot(t_yaw,phi_yaw*180/pi);
+ylabel('$\phi$');
+xlabel('t [s]');
+>>>>>>> main
 title('Angle of rotation vs time');
 subplot(3,1,2);
 plot(t_yaw,H_yaw);
 title('Angular momentum vs time');
+<<<<<<< HEAD
 ylabel('H [Nms]','interpreter','latex','Fontsize',pt);
 xlabel('t [s]','interpreter','latex','Fontsize',pt);
 xlim([0 5.5]);
@@ -184,3 +200,12 @@ Cy=[1,0;0,1];
 Dy=0;
 %% 3)LQR
 %% 4) PDI
+=======
+ylabel('H [Nms]');
+xlabel('t [s]');
+subplot(3,1,3);
+plot(t_yaw,T_yaw);
+title('Torque vs time');
+ylabel('T [Nm]');
+xlabel('t [s]');
+>>>>>>> main
