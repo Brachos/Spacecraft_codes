@@ -80,11 +80,7 @@ phi_man_yaw=1/2*yaw_torque/Izz*yaw_torque_time^2;
 
 %% 1.4) Plot profiles
 figure
-<<<<<<< HEAD
-sgtitle("Roll with I$_w$="+Iw_roll+" and $\phi_{end}$="+phi_roll(end)*180/pi,'interpreter','latex','Fontsize',pt);
-=======
-sgtitle("Roll with I$_w$="+Iw+" and $\phi_{end}$="+phi_roll(end)*180/pi);
->>>>>>> main
+sgtitle("Roll with I$_w$="+Iw_roll+" and $\phi_{end}$="+phi_roll(end)*180/pi);
 subplot(3,1,1);
 plot(t_roll,phi_roll*180/pi);
 ylabel('$\phi$');
@@ -103,11 +99,7 @@ xlabel('t [s]');
 
 
 figure
-<<<<<<< HEAD
-sgtitle("Pitch with I$_w$="+Iw_pitch+" and $\phi_{end}$="+phi_pitch(end)*180/pi,'interpreter','latex','Fontsize',pt);
-=======
-sgtitle("Pitch with I$_w$="+Iw+" and $\phi_{end}$="+phi_pitch(end)*180/pi);
->>>>>>> main
+sgtitle("Pitch with I$_w$="+Iw_pitch+" and $\phi_{end}$="+phi_pitch(end)*180/pi);
 subplot(3,1,1);
 plot(t_pitch,phi_pitch*180/pi);
 ylabel('$\phi$');
@@ -125,25 +117,15 @@ ylabel('T [Nm]');
 xlabel('t [s]');
 
 figure
-<<<<<<< HEAD
-sgtitle("Yaw with I$_w$="+Iw_yaw+" and $\phi_{end}$="+phi_yaw(end)*180/pi,'interpreter','latex','Fontsize',pt);
-subplot(3,1,1);
-plot(t_yaw,phi_yaw*180/pi);
-ylabel('$\phi$','interpreter','latex','Fontsize',pt);
-xlabel('t [s]','interpreter','latex','Fontsize',pt);
-xlim([0 5.5]);
-=======
-sgtitle("Yaw with I$_w$="+Iw+" and $\phi_{end}$="+phi_yaw(end)*180/pi);
+sgtitle("Yaw with I$_w$="+Iw_yaw+" and $\phi_{end}$="+phi_yaw(end)*180/pi);
 subplot(3,1,1);
 plot(t_yaw,phi_yaw*180/pi);
 ylabel('$\phi$');
 xlabel('t [s]');
->>>>>>> main
 title('Angle of rotation vs time');
 subplot(3,1,2);
 plot(t_yaw,H_yaw);
 title('Angular momentum vs time');
-<<<<<<< HEAD
 ylabel('H [Nms]','interpreter','latex','Fontsize',pt);
 xlabel('t [s]','interpreter','latex','Fontsize',pt);
 xlim([0 5.5]);
@@ -199,13 +181,61 @@ By=[0;cos(beta)*N/(Izz*R)];
 Cy=[1,0;0,1];
 Dy=0;
 %% 3)LQR
+Atot = zeros(6,6);
+Atot = matArr(1,4,Ar,Atot);
+Atot = matArr(2,5,Ap,Atot);
+Atot = matArr(3,6,Ay,Atot);
+
+Btot = zeros(6,1);
+Btot = matArr(1,4,Br,Btot);
+Btot = matArr(2,5,Bp,Btot);
+Btot = matArr(3,6,By,Btot);
+C = eye(6);
+D = 0;
+q = 1;
+Q = q*[eye(3) zeros(3);zeros(3,6)];
+R = 1;
+K = lqr(Atot,Btot,Q,R);
+CL = Atot - Btot*K;
+RL = eig(CL);
+sys = ss(Atot - Btot*K, Btot, C, D);
+% roll
+qr = 1;
+Qr = qr*[1 0; 0 0];
+Rr = 1;
+Kr = lqr(Ar,Br,Qr,Rr);
+CLr = Ar - Br*Kr;
+RLr = eig(CLr);
+sysr = ss(Ar-Br*Kr,Br,Cr,Dr);
+t = (0:0.06:1)';        % simulation time
+u = zeros(size(t,1),1);	% is an impulse response, so there are initial conditions but no excitations
+x0 = [phi_roll(end) 0]';          
+yy = lsim(Ar,Br,CLr,RLr,u,t,x0);
+% stepr = step(sysr,40);
+theta = yy(:,1);
+figure
+plot(t,theta,'LineWidth',2); 
+grid;
+legend('$\theta$ this is ok'); 
 %% 4) PDI
-=======
+figure
 ylabel('H [Nms]');
 xlabel('t [s]');
-subplot(3,1,3);
+% subplot(3,1,3);
 plot(t_yaw,T_yaw);
 title('Torque vs time');
 ylabel('T [Nm]');
 xlabel('t [s]');
->>>>>>> main
+
+
+function [Atot] = matArr(pos1,pos2,mat,Atot)
+if size(Atot,2) > 1
+    Atot(pos1,pos1) = mat(1,1);
+    Atot(pos2,pos1) = mat(2,1);
+    Atot(pos1,pos2) = mat(1,2);
+    Atot(pos2,pos2) = mat(2,2);
+else
+    Atot(pos1) = mat(1);
+    Atot(pos2) = mat(2);
+end
+end
