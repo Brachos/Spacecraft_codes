@@ -55,7 +55,7 @@ elseif mode=="Yaw"
         % Total
         t=[t1 t2+t1(end) t3+t_maneuver/2+t1(end)];
         t1=t2;
-        t2=t3;
+        t2=t"
         phi=[phi1 phi2 phi3];
         z=[z1 z2+z1(end) z3+z2(end)+z1(end)];
         H= Is*z; %angular momentum of the spacecraft.
