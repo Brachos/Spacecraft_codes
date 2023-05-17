@@ -31,11 +31,11 @@ elseif mode=='Yaw'
         %spacecraft after 0.5s.
         zdot1=yaw_torque/Is;
         t1=0:0.1:yaw_torque_time;
-        z1=zdot1.*t1; 
+        z1=zdot1.*t1;
         phi1=1/2*zdot1*t1.^2; % rotation angle of the spacecraft over 0.5s
         T1=yaw_torque*ones(1,length(t1));
         
-        %Phase 2 
+        %Phase 2
         t2=0:0.1:t_maneuver/2;
         zdot2=2*phi_man/t2(end)^2;
         z2=zdot2*t2;
