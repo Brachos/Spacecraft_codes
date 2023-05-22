@@ -218,34 +218,34 @@ Dr=[0;0];
 Ap=[0,1;0,sin(beta)/Iyy*(N^2/R+c)*(-2*sin(beta)-Iyy/(Iw*sin(beta)))];
 Bp=[0;sin(beta)*N/(Iyy*R)];
 Cp=[1,0;0,1];
-Dp=0;
+Dp=[0;0];
 %2.3) Yaw
 Ay=[0,1;0,cos(beta)/Izz*(N^2/R+c)*(-2*cos(beta)-Izz/(Iw*cos(beta)))];
 By=[0;cos(beta)*N/(Izz*R)];
 Cy=[1,0;0,1];
-Dy=0;
+Dy=[0;0];
 %% 3)LQR
-Atot = zeros(6,6);
-Atot = matArr(1,4,Ar,Atot);
-Atot = matArr(2,5,Ap,Atot);
-Atot = matArr(3,6,Ay,Atot);
-
-Btot = zeros(6,1);
-Btot = matArr(1,4,Br,Btot);
-Btot = matArr(2,5,Bp,Btot);
-Btot = matArr(3,6,By,Btot);
-C = eye(6);
-D = 0;
-q = 1;
-Q = q*[eye(3) zeros(3);zeros(3,6)];
-R = 1;
-% K = lqr(Atot,Btot,Q,R);
-% CL = Atot - Btot*K;
-% RL = eig(CL);
-% sys = ss(Atot - Btot*K, Btot, C, D);
-% roll
-qr = 1;
-Qr = qr*[100 0; 0 1];
+% Atot = zeros(6,6);
+% Atot = matArr(1,4,Ar,Atot);
+% Atot = matArr(2,5,Ap,Atot);
+% Atot = matArr(3,6,Ay,Atot);
+% 
+% Btot = zeros(6,1);
+% Btot = matArr(1,4,Br,Btot);
+% Btot = matArr(2,5,Bp,Btot);
+% Btot = matArr(3,6,By,Btot);
+% C = eye(6);
+% D = 0;
+% q = 1;
+% Q = q*[eye(3) zeros(3);zeros(3,6)];
+% R = 1;
+% % K = lqr(Atot,Btot,Q,R);
+% % CL = Atot - Btot*K;
+% % RL = eig(CL);
+% % sys = ss(Atot - Btot*K, Btot, C, D);
+close all
+% Roll
+Qr = [100 0; 0 1];
 Rr = .01;
 Kr = lqr(Ar,Br,Qr,Rr);
 CLr = Ar - Br*Kr;
@@ -255,14 +255,14 @@ RLr = eig(CLr);
 sysr_lqr = ss(CLr,Br,Ccr,Ddr);
 x0 = [phi_roll(end) 0].';
 t = linspace(0,250,1000);
-[T, D] = eig(Ar);
+[T, eigR] = eig(Ar);
 xt = zeros(length(t),2);
 for i = 1:length(t)
-    xt(i,:) = T*exp(D*t(i))*T^(-1) * x0;
+    xt(i,:) = T*exp(eigR*t(i))*T^(-1) * x0;
 end
-close all
-figure
-plot(t,xt(:,1))
+
+% figure
+% plot(t,xt(:,1))
 [Tk, Dk] = eig(Ar - Br*Kr);
 xtk = zeros(length(t),2);
 for i = 1:length(t)
@@ -270,9 +270,11 @@ for i = 1:length(t)
 end
 figure
 plot(t,xtk(:,1))
+title('Roll angle LQR');
 figure
 plot(t,xtk(:,2))
-%%
+title('Roll angle rate LQR');
+
 [numr, denr] = ss2tf(Ar, Br, Cr, Dr);
 H_phir = tf(numr(1,:), denr);
 L_phir = Kr(1) * H_phir;
@@ -281,17 +283,88 @@ margin(L_phir);
 
 figure
 nyquist(L_phir);
-%
-t = (0:0.06:1)';        % simulation time
-u = zeros(size(t,1),1);	% is an impulse response, so there are initial conditions but no excitations
-x0 = [phi_roll(end) 0]';          
-yy = lsim(Ar,Br,CLr,RLr,u,t,x0);
-% stepr = step(sysr,40);
-theta = yy(:,1);
+
+% Pitch
+Qp = [100 0; 0 1];
+Rp = .01;
+Kp = lqr(Ap,Bp,Qp,Rp);
+CLp = Ap - Bp*Kp;
+Ccp = [Cp; -Kp];
+Ddp = [Dp; 0];
+RLp = eig(CLp);
+sysr_lqp = ss(CLp,Bp,Ccp,Ddp);
+x0_p = [phi_pitch(end) 0].';
+t = linspace(0,250,1000);
+[Tp, eigP] = eig(Ap);
+xt_p = zeros(length(t),2);
+for i = 1:length(t)
+    xt_p(i,:) = Tp*exp(eigP*t(i))*Tp^(-1) * x0_p;
+end
+
+% figure
+% plot(t,xt_p(:,1))
+[Tk_p, Dk_p] = eig(Ap - Bp*Kp);
+xtk_p = zeros(length(t),2);
+for i = 1:length(t)
+    xtk_p(i,:) = Tk_p*exp(Dk_p*t(i))*Tk_p^(-1) * x0_p;
+end
 figure
-plot(t,theta,'LineWidth',2); 
-grid;
-legend('$\theta$ this is ok'); 
+plot(t,xtk_p(:,1))
+title('Pitch angle LQR');
+figure
+plot(t,xtk_p(:,2))
+title('Pitch angle rate LQR')
+
+[nump, denp] = ss2tf(Ap, Bp, Cp, Dp);
+H_phip = tf(nump(1,:), denp);
+L_phip = Kp(1) * H_phip;
+figure
+margin(L_phip);
+
+figure
+nyquist(L_phip);
+
+% Yaw
+Qy = [100 0; 0 1];
+Ry = .01;
+Ky = lqr(Ay,By,Qy,Ry);
+CLy = Ay - By*Ky;
+Ccy = [Cy; -Ky];
+Ddy = [Dy; 0];
+RLy = eig(CLy);
+sysr_lqy = ss(CLy,By,Ccy,Ddy);
+x0_y = [phi_yaw(end) 0].';
+t = linspace(0,250,1000);
+[Ty, eigY] = eig(Ay);
+xt_y = zeros(length(t),2);
+for i = 1:length(t)
+    xt_y(i,:) = Ty*exp(eigY*t(i))*Ty^(-1) * x0_y;
+end
+
+% figure
+% plot(t,xt_y(:,1))
+[Tk_y, Dk_y] = eig(Ay - By*Ky);
+xtk_y = zeros(length(t),2);
+for i = 1:length(t)
+    xtk_y(i,:) = Tk_y*exp(Dk_y*t(i))*Tk_y^(-1) * x0_y;
+end
+figure
+plot(t,xtk_y(:,1))
+title('Yaw angle LQR');
+figure
+plot(t,xtk_y(:,2))
+title('Yaw angle rate LQR');
+
+[numy, deny] = ss2tf(Ay, By, Cy, Dy);
+H_phiy = tf(numy(1,:), deny);
+L_phiy = Ky(1) * H_phiy;
+figure
+margin(L_phiy);
+
+figure
+nyquist(L_phiy);
+
+
 %% 4) PDI
 figure
 ylabel('H [Nms]');
