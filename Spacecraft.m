@@ -225,32 +225,53 @@ By=[0;cos(beta)*N/(Izz*R)];
 Cy=[1,0;0,1];
 Dy=0;
 %% 3)LQR
-Atot = zeros(6,6);
-Atot = matArr(1,4,Ar,Atot);
-Atot = matArr(2,5,Ap,Atot);
-Atot = matArr(3,6,Ay,Atot);
-
-Btot = zeros(6,1);
-Btot = matArr(1,4,Br,Btot);
-Btot = matArr(2,5,Bp,Btot);
-Btot = matArr(3,6,By,Btot);
-C = eye(6);
-D = 0;
-q = 1;
-Q = q*[eye(3) zeros(3);zeros(3,6)];
-R = 1;
-K = lqr(Atot,Btot,Q,R);
-CL = Atot - Btot*K;
-RL = eig(CL);
-sys = ss(Atot - Btot*K, Btot, C, D);
+% Atot = zeros(6,6);
+% Atot = matArr(1,4,Ar,Atot);
+% Atot = matArr(2,5,Ap,Atot);
+% Atot = matArr(3,6,Ay,Atot);
+% 
+% Btot = zeros(6,1);
+% Btot = matArr(1,4,Br,Btot);
+% Btot = matArr(2,5,Bp,Btot);
+% Btot = matArr(3,6,By,Btot);
+% C = eye(6);
+% D = 0;
+% q = 1;
+% Q = q*[eye(3) zeros(3);zeros(3,6)];
+% R = 1;
+% K = lqr(Atot,Btot,Q,R);
+% CL = Atot - Btot*K;
+% RL = eig(CL);
+% sys = ss(Atot - Btot*K, Btot, C, D);
 % roll
 qr = 1;
-Qr = qr*[1 0; 0 0];
-Rr = 1;
+Qr = qr*[10 0; 0 1];
+Rr = .01;
 Kr = lqr(Ar,Br,Qr,Rr);
 CLr = Ar - Br*Kr;
+Ccr = [Cr; -Kr];
+Ddr = [Dr; 0];
 RLr = eig(CLr);
-sysr = ss(Ar-Br*Kr,Br,Cr,Dr);
+sysr_lqr = ss(CLr,Br,Ccr,Ddr);
+x0 = [phi_roll(end) 0].';
+t = linspace(0,5,1000);
+[T, D] = eig(Ar);
+xt = zeros(length(t),2);
+for i = 1:length(t)
+    xt(i,:) = T*exp(D*t(i))*T^(-1) * x0;
+end
+
+
+%
+[numr, denr] = ss2tf(Ar, Br, Cr, Dr);
+H_phir = tf(numr(1,:), denr);
+L_phir = Kr(1) * H_phir;
+figure
+margin(L_phir);
+
+figure
+nyquist(L_phir);
+%
 t = (0:0.06:1)';        % simulation time
 u = zeros(size(t,1),1);	% is an impulse response, so there are initial conditions but no excitations
 x0 = [phi_roll(end) 0]';          
@@ -290,4 +311,4 @@ else
     Atot(pos2) = mat(2);
 end
 end
-sisotool(Hr_pid)
+% sisotool(Hr_pid)
