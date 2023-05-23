@@ -245,8 +245,8 @@ Dy=[0;0];
 % % sys = ss(Atot - Btot*K, Btot, C, D);
 close all
 % Roll
-Qr = [100 0; 0 1];
-Rr = .01;
+Qr = [10000 0; 0 .001];
+Rr = .001;
 Kr = lqr(Ar,Br,Qr,Rr);
 CLr = Ar - Br*Kr;
 Ccr = [Cr; -Kr];
@@ -254,7 +254,7 @@ Ddr = [Dr; 0];
 RLr = eig(CLr);
 sysr_lqr = ss(CLr,Br,Ccr,Ddr);
 x0 = [phi_roll(end) 0].';
-t = linspace(0,250,1000);
+t = linspace(0,10,1000);
 [T, eigR] = eig(Ar);
 xt = zeros(length(t),2);
 for i = 1:length(t)
@@ -285,7 +285,7 @@ figure
 nyquist(L_phir);
 
 % Pitch
-Qp = [100 0; 0 1];
+Qp = [500 0; 0 1];
 Rp = .01;
 Kp = lqr(Ap,Bp,Qp,Rp);
 CLp = Ap - Bp*Kp;
@@ -294,7 +294,6 @@ Ddp = [Dp; 0];
 RLp = eig(CLp);
 sysr_lqp = ss(CLp,Bp,Ccp,Ddp);
 x0_p = [phi_pitch(end) 0].';
-t = linspace(0,250,1000);
 [Tp, eigP] = eig(Ap);
 xt_p = zeros(length(t),2);
 for i = 1:length(t)
@@ -325,15 +324,15 @@ figure
 nyquist(L_phip);
 
 % Yaw
-Qy = [100 0; 0 1];
-Ry = .01;
+Qy = [600 0; 0 1];
+Ry = .005;
 Ky = lqr(Ay,By,Qy,Ry);
 CLy = Ay - By*Ky;
 Ccy = [Cy; -Ky];
 Ddy = [Dy; 0];
 RLy = eig(CLy);
 sysr_lqy = ss(CLy,By,Ccy,Ddy);
-x0_y = [phi_yaw(end) 0].';
+x0_y = [max(phi_yaw) 0].';
 t = linspace(0,250,1000);
 [Ty, eigY] = eig(Ay);
 xt_y = zeros(length(t),2);
