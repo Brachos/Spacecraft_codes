@@ -4,10 +4,10 @@ clear
 close all
 FigSet;
 % Data and constants
-max_speed = 500*2*pi/60; % in [rad/s]
+max_speed = 190*2*pi/60; % in [rad/s]
 beta = 63.4*pi/180; % in RADIANS
-int_resist = 50; % in OHMS
-torque_const = 1; %[Nm/A]
+int_resist = 0.7; % in OHMS
+torque_const = 1; %[Nm/A]%redefined later
 c = 1e-4; %[Nm/(rad/s)]
 steel_dens = 8000; %[kg/m^3]
 
@@ -77,84 +77,126 @@ A = [sin(beta) 0 -sin(beta) 0;
 phi_man_yaw=1/2*yaw_torque/Izz*yaw_torque_time^2;
 [phi_yaw,Iw_yaw,H_yaw,T_yaw,t_yaw,t_yaw1,t_yaw2,z] = maneuver (max_speed,yaw_time,Izz,beta,phi_man_yaw/2,"Yaw");
 
-
-%% 1.4) Plot profiles
-figure
-sgtitle("Roll with I$_w$="+Iw_roll+" and $\phi_{end}$="+phi_roll(end)*180/pi);
-subplot(3,1,1);
-plot(t_roll,phi_roll*180/pi);
-ylabel('$\phi$');
-xlabel('t [s]');
-title('Angle of rotation vs time');
-subplot(3,1,2);
-plot(t_roll,H_roll);
-title('Angular momentum vs time');
-ylabel('H [Nms]');
-xlabel('t [s]');
-subplot(3,1,3);
-plot(t_roll,T_roll);
-title('Torque vs time');
-ylabel('T [Nm]');
-xlabel('t [s]');
-
-
-figure
-sgtitle("Pitch with I$_w$="+Iw_pitch+" and $\phi_{end}$="+phi_pitch(end)*180/pi);
-subplot(3,1,1);
-plot(t_pitch,phi_pitch*180/pi);
-ylabel('$\phi$');
-xlabel('t [s]');
-title('Angle of rotation vs time');
-subplot(3,1,2);
-plot(t_pitch,H_pitch);
-title('Angular momentum vs time');
-ylabel('H [Nms]');
-xlabel('t [s]');
-subplot(3,1,3);
-plot(t_pitch,T_pitch);
-title('Torque vs time');
-ylabel('T [Nm]');
-xlabel('t [s]');
-
-figure
-sgtitle("Yaw with I$_w$="+Iw_yaw+" and $\phi_{end}$="+phi_yaw(end)*180/pi);
-subplot(3,1,1);
-plot(t_yaw,phi_yaw*180/pi);
-ylabel('$\phi$');
-xlabel('t [s]');
-xlim([0 5.5]);
-title('Angle of rotation vs time');
-subplot(3,1,2);
-plot(t_yaw,H_yaw);
-title('Angular momentum vs time');
-ylabel('H [Nms]');
-xlabel('t [s]');
-xlim([0 5.5]);
-subplot(3,1,3);
-plot(t_yaw,T_yaw);
-title('Torque vs time');
-ylabel('T [Nm]');
-xlabel('t [s]');
-xlim([0 5.5]);
-
 %% 1.5) Wheel inertia and dimensions 
 Iw = max([Iw_roll Iw_pitch Iw_yaw]);
 Omega_max_roll=max(p)*Ixx/(2*Iw*sin(beta));
-Omega_max_yaw=max(z)*Izz/(4*Iw*cos(beta));
-% assuming a radius 3 times larger than the height of the wheel.
-h=(2*Iw/(81*pi*steel_dens))^(1/5);
-R=3*h;
-
-fprintf('The diameter of the wheel is equal to %.2f cm and its height to %.2f cm \n',R*100,h*100);
-%% 1.6) Compute current and voltage needed
-N=25; % ???????? justifier valeur.
-% Roll. Assumptions: i1=-i3, e1=-e3, omega1=-omega3 and omega1,max=-7000RPM
-pdot=T_roll/Ixx;
 Omega_roll1=linspace(0,-Omega_max_roll,length(t_roll1));
 Omega_roll2=linspace(0,Omega_max_roll,length(t_roll2));
 Omega_roll=[Omega_roll1 Omega_roll2+Omega_roll1(end)];
+Omega_pitch1=linspace(0,-max_speed,length(t_pitch1));
+Omega_pitch2=linspace(0,max_speed,length(t_pitch2));
+Omega_pitch=[Omega_pitch1 Omega_pitch2+Omega_pitch1(end)];
+Omega_max_yaw=max(z)*Izz/(4*Iw*cos(beta));
+t1=0:0.1:yaw_torque_time;
+Omega_yaw1=linspace(0,Omega_max_yaw,length(t_yaw1));
+Omega_yaw2=linspace(0,-Omega_max_yaw,length(t_yaw2));
+Omega_yaw=[Omega_yaw1 Omega_yaw2+Omega_yaw1(end)];
+Omega_yaw=[zeros(1,length(t1)) Omega_yaw];
+% assuming a radius 3 times larger than the height of the wheel.
+h=(2*Iw/(81*pi*steel_dens))^(1/5);
+R=2.5*h;
+
+fprintf('The diameter of the wheel is equal to %.2f cm and its height to %.2f cm \n',2*R*100,h*100);
+
+%% 1.4) Plot profiles
+figRoll=figure;
+%sgtitle("Roll with I$_w$="+Iw+" and $\phi_{end}$="+phi_roll(end)*180/pi);
+subplot(2,2,1);
+plot(t_roll,phi_roll*180/pi,'color',[0 112/256 127/256]);
+grid on
+ylabel('$\phi$ [$^\circ$]');
+xlabel('t [s]');
+%title('Angle of rotation vs time');
+subplot(2,2,2);
+plot(t_roll,H_roll,'color',[0 112/256 127/256]);
+grid on
+%title('Angular momentum vs time');
+ylabel('H [Nms]');
+xlabel('t [s]');
+subplot(2,2,3);
+plot(t_roll,T_roll,'color',[0 112/256 127/256]);
+grid on
+%title('Torque vs time');
+ylabel('T [Nm]');
+xlabel('t [s]');
+subplot(2,2,4);
+plot(t_roll,Omega_roll*30/pi,'color',[0 112/256 127/256]);
+grid on
+%title('Rotation speed vs time');
+ylabel('$\Omega$ [RPM]');
+xlabel('t [s]');
+%hgexport(figRoll,'roll_profile1.eps');
+
+figPitch=figure;
+%sgtitle("Pitch with I$_w$="+Iw+" and $\phi_{end}$="+phi_pitch(end)*180/pi);
+subplot(2,2,1);
+plot(t_pitch,phi_pitch*180/pi,'color',[0 112/256 127/256]);
+grid on
+ylabel('$\phi$ [$^\circ$]');
+xlabel('t [s]');
+xlim([0 pitch_time_change]);
+%title('Angle of rotation vs time');
+subplot(2,2,2);
+plot(t_pitch,H_pitch,'color',[0 112/256 127/256]);
+grid on
+%title('Angular momentum vs time');
+ylabel('H [Nms]');
+xlabel('t [s]');
+xlim([0 pitch_time_change]);
+subplot(2,2,3);
+plot(t_pitch,T_pitch,'color',[0 112/256 127/256]);
+grid on
+%title('Torque vs time');
+ylabel('T [Nm]');
+xlabel('t [s]');
+xlim([0 pitch_time_change]);
+subplot(2,2,4);
+plot(t_pitch,Omega_pitch*30/pi,'color',[0 112/256 127/256]);
+grid on
+%title('Rotation speed vs time');
+ylabel('$\Omega$ [RPM]');
+xlabel('t [s]');
+xlim([0 pitch_time_change]);
+%hgexport(figPitch,'pitch_profile1.eps');
+
+figYaw=figure;
+%sgtitle("Yaw with I$_w$="+Iw+" and $\phi_{end}$="+phi_yaw(end)*180/pi);
+subplot(2,2,1);
+plot(t_yaw,phi_yaw*180/pi,'color',[0 112/256 127/256]);
+grid on
+ylabel('$\phi$ [$^\circ$]');
+xlabel('t [s]');
+xlim([0 5.5]);
+%title('Angle of rotation vs time');
+subplot(2,2,2);
+plot(t_yaw,H_yaw,'color',[0 112/256 127/256]);
+grid on
+%title('Angular momentum vs time');
+ylabel('H [Nms]');
+xlabel('t [s]');
+xlim([0 5.5]);
+subplot(2,2,3);
+plot(t_yaw,T_yaw,'color',[0 112/256 127/256]);
+grid on
+%title('Torque vs time');
+ylabel('T [Nm]');
+xlabel('t [s]');
+xlim([0 5.5]);
+subplot(2,2,4);
+plot(t_yaw,Omega_yaw*30/pi,'color',[0 112/256 127/256]);
+grid on
+%title('Rotation speed vs time');
+ylabel('$\Omega$ [RPM]');
+xlabel('t [s]');
+xlim([0 5.5]);
+%hgexport(figYaw,'yaw_profile1.eps');
+
+%% 1.6) Compute current and voltage needed
+N=25; % justifier valeur.
+% Roll. Assumptions: i1=-i3, e1=-e3, omega1=-omega3 and omega1,max=-7000RPM
+pdot=T_roll/Ixx;
 i_roll=1/N*(Ixx*pdot/(2*sin(beta))+c*(p*sin(beta)-Omega_roll));
-e_roll=int_resist*abs(i_roll)+N*p*sin(beta)-Omega_roll*N;
+e_roll=2*(int_resist*abs(i_roll)+N*p*sin(beta)-Omega_roll*N);
 figure
 plot(t_roll,i_roll);
 title('Roll: Current vs time');
@@ -169,11 +211,8 @@ ylabel('e [V]');
 
 % Pitch. Same assumptions as roll 
 qdot=T_pitch/Iyy;
-Omega_pitch1=linspace(0,-max_speed,length(t_pitch1));
-Omega_pitch2=linspace(0,max_speed,length(t_pitch2));
-Omega_pitch=[Omega_pitch1 Omega_pitch2+Omega_pitch1(end)];
 i_pitch=1/N*(Iyy*qdot/(2*sin(beta))+c*(q*sin(beta)-Omega_pitch));
-e_pitch=int_resist*abs(i_pitch)+N*q*sin(beta)-Omega_pitch*N;
+e_pitch=2*(int_resist*abs(i_pitch)+N*q*sin(beta)-Omega_pitch*N);
 figure
 plot(t_pitch,i_pitch);
 title('Pitch: Current vs time');
@@ -185,17 +224,13 @@ plot(t_pitch,e_pitch);
 title('Pitch: Voltage vs time');
 xlabel('t [s]');
 ylabel('e [V]');
-%%
+
 % Yaw
-t1=0:0.1:yaw_torque_time;
+
 zdot=T_yaw/Izz;
 zdot(1:length(t1))=0;
-Omega_yaw1=linspace(0,Omega_max_yaw,length(t_yaw1));
-Omega_yaw2=linspace(0,-Omega_max_yaw,length(t_yaw2));
-Omega_yaw=[Omega_yaw1 Omega_yaw2+Omega_yaw1(end)];
-Omega_yaw=[zeros(1,length(t1)) Omega_yaw];
 i_yaw=1/N*(Izz*zdot/(4*cos(beta))+c*(z*cos(beta)-Omega_yaw));
-e_yaw=int_resist*abs(i_yaw)+N*z*cos(beta)-Omega_yaw*N;
+e_yaw=4*(int_resist*abs(i_yaw)+N*z*cos(beta)-Omega_yaw*N);
 figure
 plot(t_yaw,i_yaw);
 title('Yaw: Current vs time');
@@ -243,7 +278,7 @@ Dy=[0;0];
 % % CL = Atot - Btot*K;
 % % RL = eig(CL);
 % % sys = ss(Atot - Btot*K, Btot, C, D);
-close all
+%close all
 % Roll
 Qr = [10000 0; 0 .001];
 Rr = .0001;
@@ -362,23 +397,26 @@ margin(L_phiy);
 figure
 nyquist(L_phiy);
 
-
-%% 4) PDI
-figure
-ylabel('H [Nms]');
-xlabel('t [s]');
-% subplot(3,1,3);
-plot(t_yaw,T_yaw);
-title('Torque vs time');
-ylabel('T [Nm]');
-xlabel('t [s]');
 %% 4) PID
+%Roll
 [br,ar]=ss2tf(Ar,Br,Cr,Dr);
 Hr=tf(br(2,:),ar); %get transfer function related to roll rate and voltage difference.
-%sisotool(Hr)
-%pidTuner(Hr,'pid')
 s=tf('s');
 Hr_pid=N*sin(beta)/(int_resist*Ixx)/(s^2+s*(sin(beta)/Ixx*(N^2/int_resist+c)*(2*sin(beta)+Ixx/(Iw*sin(beta)))));
+%sisotool(Hr_pid)
+%Pitch
+[bp,ap]=ss2tf(Ap,Bp,Cp,Dp);
+Hp=tf(bp(2,:),ap); %get transfer function related to roll rate and voltage difference.
+s=tf('s');
+Hp_pid=N*sin(beta)/(int_resist*Iyy)/(s^2+s*(sin(beta)/Iyy*(N^2/int_resist+c)*(2*sin(beta)+Iyy/(Iw*sin(beta)))));
+%sisotool(Hp_pid)
+%Yaw
+[by,ay]=ss2tf(Ay,By,Cy,Dy);
+Hy=tf(by(2,:),ay); %get transfer function related to roll rate and voltage difference.
+s=tf('s');
+Hy_pid=N*cos(beta)/(int_resist*Izz)/(s^2+s*(cos(beta)/Izz*(N^2/int_resist+c)*(2*cos(beta)+Izz/(Iw*cos(beta)))));
+sisotool(Hy_pid)
+%%
 
 
 function [Atot] = matArr(pos1,pos2,mat,Atot)
@@ -392,4 +430,3 @@ else
     Atot(pos2) = mat(2);
 end
 end
-% sisotool(Hr_pid)
