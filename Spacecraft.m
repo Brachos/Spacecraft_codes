@@ -4,9 +4,9 @@ clear
 close all
 FigSet;
 % Data and constants
-max_speed = 190*2*pi/60; % in [rad/s]
+max_speed = 5*2*pi/60; % in [rad/s]
 beta = 63.4*pi/180; % in RADIANS
-int_resist = 0.7; % in OHMS
+int_resist = 6; % in OHMS
 torque_const = 1; %[Nm/A]%redefined later
 c = 1e-4; %[Nm/(rad/s)]
 steel_dens = 8000; %[kg/m^3]
@@ -94,7 +94,7 @@ Omega_yaw=[Omega_yaw1 Omega_yaw2+Omega_yaw1(end)];
 Omega_yaw=[zeros(1,length(t1)) Omega_yaw];
 % assuming a radius 3 times larger than the height of the wheel.
 h=(2*Iw/(81*pi*steel_dens))^(1/5);
-R=2.5*h;
+R=2*h;
 
 fprintf('The diameter of the wheel is equal to %.2f cm and its height to %.2f cm \n',2*R*100,h*100);
 
@@ -192,16 +192,17 @@ xlim([0 5.5]);
 %hgexport(figYaw,'yaw_profile1.eps');
 
 %% 1.6) Compute current and voltage needed
-N=25; % justifier valeur.
+N=60; % justifier valeur.
 % Roll. Assumptions: i1=-i3, e1=-e3, omega1=-omega3 and omega1,max=-7000RPM
 pdot=T_roll/Ixx;
 i_roll=1/N*(Ixx*pdot/(2*sin(beta))+c*(p*sin(beta)-Omega_roll));
 e_roll=2*(int_resist*abs(i_roll)+N*p*sin(beta)-Omega_roll*N);
 figure
-plot(t_roll,i_roll);
-title('Roll: Current vs time');
+plot(t_roll,i_roll,'color',[0 112/256 127/256]);
+%title('Roll: Current vs time');
 xlabel('t [s]');
 ylabel('i [A]');
+%hgexport(gcf,'i_roll.eps');
 % ylim([min(i_roll)  max(i_roll)]);
 figure
 plot(t_roll,e_roll);
@@ -214,10 +215,11 @@ qdot=T_pitch/Iyy;
 i_pitch=1/N*(Iyy*qdot/(2*sin(beta))+c*(q*sin(beta)-Omega_pitch));
 e_pitch=2*(int_resist*abs(i_pitch)+N*q*sin(beta)-Omega_pitch*N);
 figure
-plot(t_pitch,i_pitch);
-title('Pitch: Current vs time');
+plot(t_pitch,i_pitch,'color',[0 112/256 127/256]);
+%title('Pitch: Current vs time');
 xlabel('t [s]');
 ylabel('i [A]');
+%hgexport(gcf,'i_pitch.eps');
 % ylim([min(i_pitch)  max(i_pitch)]);
 figure
 plot(t_pitch,e_pitch);
@@ -232,10 +234,11 @@ zdot(1:length(t1))=0;
 i_yaw=1/N*(Izz*zdot/(4*cos(beta))+c*(z*cos(beta)-Omega_yaw));
 e_yaw=4*(int_resist*abs(i_yaw)+N*z*cos(beta)-Omega_yaw*N);
 figure
-plot(t_yaw,i_yaw);
-title('Yaw: Current vs time');
+plot(t_yaw,i_yaw,'color',[0 112/256 127/256]);
+%title('Yaw: Current vs time');
 xlabel('t [s]');
 ylabel('i [A]');
+%hgexport(gcf,'i_yaw.eps');
 % ylim([min(i_yaw)  max(i_yaw)]);
 figure
 plot(t_yaw,e_yaw);
@@ -415,7 +418,7 @@ Hp_pid=N*sin(beta)/(int_resist*Iyy)/(s^2+s*(sin(beta)/Iyy*(N^2/int_resist+c)*(2*
 Hy=tf(by(2,:),ay); %get transfer function related to roll rate and voltage difference.
 s=tf('s');
 Hy_pid=N*cos(beta)/(int_resist*Izz)/(s^2+s*(cos(beta)/Izz*(N^2/int_resist+c)*(2*cos(beta)+Izz/(Iw*cos(beta)))));
-sisotool(Hy_pid)
+%sisotool(Hy_pid)
 %%
 
 
