@@ -283,8 +283,8 @@ Dy=[0;0];
 % % sys = ss(Atot - Btot*K, Btot, C, D);
 %close all
 % Roll
-Qr = [10000 0; 0 .001];
-Rr = .0001;
+Qr = [1e6 0; 0 0];
+Rr = 0.001;
 Kr = lqr(Ar,Br,Qr,Rr);
 CLr = Ar - Br*Kr;
 Ccr = [Cr; -Kr];
@@ -322,9 +322,9 @@ margin(L_phir);
 figure
 nyquist(L_phir);
 
-% Pitch
-Qp = [500 0; 0 1];
-Rp = .01;
+%% LQR Pitch
+Qp = [100000 0; 0 0.001];
+Rp = 0.0001;
 Kp = lqr(Ap,Bp,Qp,Rp);
 CLp = Ap - Bp*Kp;
 Ccp = [Cp; -Kp];
@@ -360,8 +360,8 @@ margin(L_phip);
 
 figure
 nyquist(L_phip);
-
-% Yaw
+close all
+%% LQR Yaw
 Qy = [600 0; 0 1];
 Ry = .005;
 Ky = lqr(Ay,By,Qy,Ry);
