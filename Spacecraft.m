@@ -265,27 +265,27 @@ Cy=[1,0;0,1];
 Dy=[0;0];
 %% 3)Roll LQR
 Qr = [1e5 0; 0 1];
-Rr = 0.01;
+Rr = 0.23;
 Kr = lqr(Ar,Br,Qr,Rr);
 CLr = Ar - Br*Kr;
-Ccr = [Cr];
-Ddr = [Dr];
+% Ccr = [Cr];
+% Ddr = [Dr];
 RLr = eig(CLr);
-sysr_lqr = ss(CLr,Br,Ccr,Ddr);
+sysr_lqr = ss(CLr,Br,Cr,Dr);
 x0 = [-pi/2 0].';
-t = linspace(0,7,1000);
-[T, eigR] = eig(Ar);
-xt = zeros(length(t),2);
-for i = 1:length(t)
-    xt(i,:) = T*exp(eigR*t(i))*T^(-1) * x0;
-end
+t = linspace(0,5,1000);
+% [T, eigR] = eig(Ar);
+% xt = zeros(length(t),2);
+% for i = 1:length(t)
+%     xt(i,:) = T*exp(eigR*t(i))*T^(-1) * x0;
+% end
 
 % figure
 % plot(t,xt(:,1))
 [Tk, Dk] = eig(Ar - Br*Kr);
 xtk = zeros(length(t),2);
 for i = 1:length(t)
-    xtk(i,:) = Tk*exp(Dk*t(i))*Tk^(-1) * x0;
+    xtk(i,:) = Tk*expm(Dk*t(i))*Tk^(-1) * x0 + pi/2;
 end
 figure
 plot(t,xtk(:,1))
@@ -315,7 +315,7 @@ x0_p = [phi_pitch(end) 0].';
 [Tp, eigP] = eig(Ap);
 xt_p = zeros(length(t),2);
 for i = 1:length(t)
-    xt_p(i,:) = Tp*exp(eigP*t(i))*Tp^(-1) * x0_p;
+    xt_p(i,:) = Tp*expm(eigP*t(i))*Tp^(-1) * x0_p ;
 end
 
 % figure
@@ -323,7 +323,7 @@ end
 [Tk_p, Dk_p] = eig(Ap - Bp*Kp);
 xtk_p = zeros(length(t),2);
 for i = 1:length(t)
-    xtk_p(i,:) = Tk_p*exp(Dk_p*t(i))*Tk_p^(-1) * x0_p;
+    xtk_p(i,:) = Tk_p*expm(Dk_p*t(i))*Tk_p^(-1) * x0_p;
 end
 figure
 plot(t,xtk_p(:,1))
@@ -340,7 +340,7 @@ margin(L_phip);
 
 figure
 nyquist(L_phip);
-close all
+% close all
 
 % Requirements
 
@@ -357,7 +357,7 @@ x0_y = [max(phi_yaw) 0].';
 [Ty, eigY] = eig(Ay);
 xt_y = zeros(length(t),2);
 for i = 1:length(t)
-    xt_y(i,:) = Ty*exp(eigY*t(i))*Ty^(-1) * x0_y;
+    xt_y(i,:) = Ty*expm(eigY*t(i))*Ty^(-1) * x0_y;
 end
 
 % figure
@@ -365,7 +365,7 @@ end
 [Tk_y, Dk_y] = eig(Ay - By*Ky);
 xtk_y = zeros(length(t),2);
 for i = 1:length(t)
-    xtk_y(i,:) = Tk_y*exp(Dk_y*t(i))*Tk_y^(-1) * x0_y;
+    xtk_y(i,:) = Tk_y*expm(Dk_y*t(i))*Tk_y^(-1) * x0_y;
 end
 figure
 plot(t,xtk_y(:,1))
