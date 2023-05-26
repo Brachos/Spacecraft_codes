@@ -264,7 +264,7 @@ Cy=[1,0;0,1];
 Dy=[0;0];
 %% 3)Roll LQR
 Qr = [1e5 0; 0 1];
-Rr = 0.01;
+Rr = 0.2;
 Kr = lqr(Ar,Br,Qr,Rr);
 CLr = Ar - Br*Kr;
 Ccr = [Cr];
