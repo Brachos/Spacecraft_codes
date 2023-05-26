@@ -258,7 +258,8 @@ Bp=[0;sin(beta)*N/(Iyy*R)];
 Cp=[1,0;0,1];
 Dp=[0;0];
 %2.3) Yaw
-Ay=[0,1;0,cos(beta)/Izz*(N^2/R+c)*(-2*cos(beta)-Izz/(Iw*cos(beta)))];
+Hzz=H_yaw(6);
+Ay=[0,1;0,cos(beta)/Izz*(N^2/R+c)*(-2*cos(beta)+(Hzz-Izz)/(Iw*cos(beta)))];
 By=[0;cos(beta)*N/(Izz*R)];
 Cy=[1,0;0,1];
 Dy=[0;0];
@@ -398,9 +399,9 @@ Hp_pid=N*sin(beta)/(int_resist*Iyy)/(s^2+s*(sin(beta)/Iyy*(N^2/int_resist+c)*(2*
 %Yaw
 [by,ay]=ss2tf(Ay,By,Cy,Dy);
 Hy=tf(by(2,:),ay); %get transfer function related to roll rate and voltage difference.
-s=tf('s');
-Hy_pid=N*cos(beta)/(int_resist*Izz)/(s^2+s*(cos(beta)/Izz*(N^2/int_resist+c)*(2*cos(beta)+Izz/(Iw*cos(beta)))));
-%sisotool(Hy_pid)
+Hy_pid=N*cos(beta)/(int_resist*Izz)/(s^2+s*(cos(beta)/Izz*(N^2/int_resist+c)*(2*cos(beta)+(Izz-Hzz)/(Iw*cos(beta)))));
+sisotool(Hy_ss)
+
 %%
 
 
