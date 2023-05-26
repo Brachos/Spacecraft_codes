@@ -384,10 +384,12 @@ nyquist(L_phiy);
 
 %% 4) PID
 %Roll
-[br,ar]=ss2tf(Ar,Br,Cr,Dr);
-Hr=tf(br(2,:),ar); %get transfer function related to roll rate and voltage difference.
+%[br,ar]=ss2tf(Co*Ar,Co*Br,Cr,Dr);
 s=tf('s');
-Hr_pid=N*sin(beta)/(int_resist*Ixx)/(s^2+s*(sin(beta)/Ixx*(N^2/int_resist+c)*(2*sin(beta)+Ixx/(Iw*sin(beta)))));
+Hr=C*(s*eye(2
+Hr_pid=N*sin(beta)/(int_resist*Ixx)/(s^2+s*(sin(beta)/Ixx*(N^2/int_resist+c)*(2*sin(beta)+Ixx/(Iw*sin(beta)))))
+
+
 %sisotool(Hr_pid)
 %Pitch
 [bp,ap]=ss2tf(Ap,Bp,Cp,Dp);

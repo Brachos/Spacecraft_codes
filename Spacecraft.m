@@ -248,19 +248,19 @@ ylabel('e [V]');
 %% 2) State space representation
 
 %2.1) Roll
-Ar=[0,1;0,sin(beta)/Ixx*(N^2/R+c)*(-2*sin(beta)-Ixx/(Iw*sin(beta)))];
-Br=[0;sin(beta)*N/(Ixx*R)];
+Ar=[0,1;0,sin(beta)/Ixx*(N^2/int_resist+c)*(-2*sin(beta)-Ixx/(Iw*sin(beta)))];
+Br=[0;sin(beta)*N/(Ixx*int_resist)];
 Cr=[1,0;0,1];
 Dr=[0;0];
 %2.2) Pitch
-Ap=[0,1;0,sin(beta)/Iyy*(N^2/R+c)*(-2*sin(beta)-Iyy/(Iw*sin(beta)))];
-Bp=[0;sin(beta)*N/(Iyy*R)];
+Ap=[0,1;0,sin(beta)/Iyy*(N^2/int_resist+c)*(-2*sin(beta)-Iyy/(Iw*sin(beta)))];
+Bp=[0;sin(beta)*N/(Iyy*int_resist)];
 Cp=[1,0;0,1];
 Dp=[0;0];
 %2.3) Yaw
 Hzz=H_yaw(6);
-Ay=[0,1;0,cos(beta)/Izz*(N^2/R+c)*(-2*cos(beta)+(Hzz-Izz)/(Iw*cos(beta)))];
-By=[0;cos(beta)*N/(Izz*R)];
+Ay=[0,1;0,cos(beta)/Izz*(N^2/int_resist+c)*(-2*cos(beta)+(Hzz-Izz)/(Iw*cos(beta)))];
+By=[0;cos(beta)*N/(Izz*int_resist)];
 Cy=[1,0;0,1];
 Dy=[0;0];
 %% 3)Roll LQR
@@ -385,10 +385,11 @@ nyquist(L_phiy);
 
 %% 4) PID
 %Roll
-[br,ar]=ss2tf(Ar,Br,Cr,Dr);
-Hr=tf(br(2,:),ar); %get transfer function related to roll rate and voltage difference.
+%[br,ar]=ss2tf(Co*Ar,Co*Br,Cr,Dr);
 s=tf('s');
-Hr_pid=N*sin(beta)/(int_resist*Ixx)/(s^2+s*(sin(beta)/Ixx*(N^2/int_resist+c)*(2*sin(beta)+Ixx/(Iw*sin(beta)))));
+Hr_pid=(N*sin(beta)/(int_resist*Ixx))/(s^2+s*(sin(beta)/Ixx*(N^2/int_resist+c)*(2*sin(beta)+Ixx/(Iw*sin(beta)))));
+[Arm,Brm,Crm,Drm]=tf2ss([0 0 N*sin(beta)/(int_resist*Ixx);0 N*sin(beta)/(int_resist*Ixx) 0],[1 -(sin(beta)/Ixx*(N^2/int_resist+c)*(2*sin(beta)+Ixx/(Iw*sin(beta)))) 0]);
+
 %sisotool(Hr_pid)
 %Pitch
 [bp,ap]=ss2tf(Ap,Bp,Cp,Dp);
@@ -400,8 +401,9 @@ Hp_pid=N*sin(beta)/(int_resist*Iyy)/(s^2+s*(sin(beta)/Iyy*(N^2/int_resist+c)*(2*
 [by,ay]=ss2tf(Ay,By,Cy,Dy);
 Hy=tf(by(2,:),ay); %get transfer function related to roll rate and voltage difference.
 Hy_pid=N*cos(beta)/(int_resist*Izz)/(s^2+s*(cos(beta)/Izz*(N^2/int_resist+c)*(2*cos(beta)+(Izz-Hzz)/(Iw*cos(beta)))));
-sisotool(Hy_ss)
-
+%sisotool(Hy_pid)
+z0=[phi_man_yaw z(7)];
+[Aym,Bym,Cym,Dym]=tf2ss([0 0 N*cos(beta)/(int_resist*Izz);0 N*cos(beta)/(int_resist*Izz) 0],[1 -(cos(beta)/Izz*(N^2/int_resist+c)*(2*cos(beta)+(Izz-Hzz)/(Iw*cos(beta)))) 0]);
 %%
 
 
