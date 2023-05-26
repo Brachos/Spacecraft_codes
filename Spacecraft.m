@@ -4,7 +4,7 @@ clear
 close all
 FigSet;
 % Data and constants
-max_speed = 5*2*pi/60; % in [rad/s]
+max_speed = 50*2*pi/60; % in [rad/s]
 beta = 63.4*pi/180; % in RADIANS
 int_resist = 6; % in OHMS
 torque_const = 1; %[Nm/A]%redefined later
@@ -94,7 +94,7 @@ Omega_yaw=[Omega_yaw1 Omega_yaw2+Omega_yaw1(end)];
 Omega_yaw=[zeros(1,length(t1)) Omega_yaw];
 % assuming a radius 3 times larger than the height of the wheel.
 h=(2*Iw/(81*pi*steel_dens))^(1/5);
-R=2*h;
+R=1.5*h;
 
 fprintf('The diameter of the wheel is equal to %.2f cm and its height to %.2f cm \n',2*R*100,h*100);
 
@@ -418,7 +418,7 @@ Hp_pid=N*sin(beta)/(int_resist*Iyy)/(s^2+s*(sin(beta)/Iyy*(N^2/int_resist+c)*(2*
 Hy=tf(by(2,:),ay); %get transfer function related to roll rate and voltage difference.
 s=tf('s');
 Hy_pid=N*cos(beta)/(int_resist*Izz)/(s^2+s*(cos(beta)/Izz*(N^2/int_resist+c)*(2*cos(beta)+Izz/(Iw*cos(beta)))));
-%sisotool(Hy_pid)
+sisotool(Hy_pid)
 %%
 
 
