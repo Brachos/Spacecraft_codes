@@ -35,13 +35,6 @@ yaw_torque_time = 0.5; %[s]
 yaw_time = 5; %[s]
 yaw_accu = 0.05; %[-]
 
-%% Steps from the Hints
-% 1) Minimum torque and momentum 
-A = [sin(beta) 0 -sin(beta) 0;
-    0 sin(beta) 0 -sin(beta);
-    cos(beta) cos(beta) cos(beta) cos(beta)];
-
-
 %% 1.1) Roll
 % The roll motion is operated over 3s, meaning that the spacecraft has to
 % go back to rest once the 3s are over. Two reaction wheels are
@@ -259,7 +252,7 @@ Cp=[1,0;0,1];
 Dp=[0;0];
 %2.3) Yaw
 Hzz=H_yaw(6);
-Ay=[0,1;0,cos(beta)/Izz*(N^2/int_resist+c)*(-2*cos(beta)+(Hzz-Izz)/(Iw*cos(beta)))];
+Ay=[0,1;0,cos(beta)/Izz*(N^2/int_resist+c)*(-4*cos(beta)+(Hzz-Izz)/(Iw*cos(beta)))];
 By=[0;cos(beta)*N/(Izz*int_resist)];
 Cy=[1,0;0,1];
 Dy=[0;0];
@@ -388,22 +381,16 @@ nyquist(L_phiy);
 %[br,ar]=ss2tf(Co*Ar,Co*Br,Cr,Dr);
 s=tf('s');
 Hr_pid=(N*sin(beta)/(int_resist*Ixx))/(s^2+s*(sin(beta)/Ixx*(N^2/int_resist+c)*(2*sin(beta)+Ixx/(Iw*sin(beta)))));
-[Arm,Brm,Crm,Drm]=tf2ss([0 0 N*sin(beta)/(int_resist*Ixx);0 N*sin(beta)/(int_resist*Ixx) 0],[1 -(sin(beta)/Ixx*(N^2/int_resist+c)*(2*sin(beta)+Ixx/(Iw*sin(beta)))) 0]);
-
 %sisotool(Hr_pid)
 %Pitch
-[bp,ap]=ss2tf(Ap,Bp,Cp,Dp);
-Hp=tf(bp(2,:),ap); %get transfer function related to roll rate and voltage difference.
 s=tf('s');
 Hp_pid=N*sin(beta)/(int_resist*Iyy)/(s^2+s*(sin(beta)/Iyy*(N^2/int_resist+c)*(2*sin(beta)+Iyy/(Iw*sin(beta)))));
 %sisotool(Hp_pid)
 %Yaw
-[by,ay]=ss2tf(Ay,By,Cy,Dy);
-Hy=tf(by(2,:),ay); %get transfer function related to roll rate and voltage difference.
-Hy_pid=N*cos(beta)/(int_resist*Izz)/(s^2+s*(cos(beta)/Izz*(N^2/int_resist+c)*(2*cos(beta)+(Izz-Hzz)/(Iw*cos(beta)))));
+Hy_pid=N*cos(beta)/(int_resist*Izz)/(s^2+s*(cos(beta)/Izz*(N^2/int_resist+c)*(4*cos(beta)+(Izz-Hzz)/(Iw*cos(beta)))));
 %sisotool(Hy_pid)
 z0=[phi_man_yaw z(7)];
-[Aym,Bym,Cym,Dym]=tf2ss([0 0 N*cos(beta)/(int_resist*Izz);0 N*cos(beta)/(int_resist*Izz) 0],[1 -(cos(beta)/Izz*(N^2/int_resist+c)*(2*cos(beta)+(Izz-Hzz)/(Iw*cos(beta)))) 0]);
+
 %%
 
 
