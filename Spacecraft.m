@@ -265,7 +265,7 @@ Cy=[1,0;0,1];
 Dy=[0;0];
 %% 3)Roll LQR
 Qr = [1e5 0; 0 1];
-Rr = 0.23;
+Rr = 0.03;
 Kr = lqr(Ar,Br,Qr,Rr);
 CLr = Ar - Br*Kr;
 % Ccr = [Cr];
@@ -304,14 +304,14 @@ figure
 nyquist(L_phir);
 %% LQR Pitch
 Qp = [1e5 0; 0 1];
-Rp = 0.02;
+Rp = 0.0045;
 Kp = lqr(Ap,Bp,Qp,Rp);
 CLp = Ap - Bp*Kp;
-Ccp = [Cp; -Kp];
-Ddp = [Dp; 0];
+% Ccp = [Cp; -Kp];
+% Ddp = [Dp; 0];
 RLp = eig(CLp);
-sysr_lqp = ss(CLp,Bp,Ccp,Ddp);
-x0_p = [phi_pitch(end) 0].';
+sysr_lqp = ss(CLp,Bp,Cp,Dp);
+x0_p = [-pi/6 0].';
 [Tp, eigP] = eig(Ap);
 xt_p = zeros(length(t),2);
 for i = 1:length(t)
@@ -323,7 +323,7 @@ end
 [Tk_p, Dk_p] = eig(Ap - Bp*Kp);
 xtk_p = zeros(length(t),2);
 for i = 1:length(t)
-    xtk_p(i,:) = Tk_p*expm(Dk_p*t(i))*Tk_p^(-1) * x0_p;
+    xtk_p(i,:) = Tk_p*expm(Dk_p*t(i))*Tk_p^(-1) * x0_p + pi/6;
 end
 figure
 plot(t,xtk_p(:,1))
@@ -346,14 +346,14 @@ nyquist(L_phip);
 
 %% LQR Yaw
 Qy = [1e5 0; 0 1];
-Ry = .025;
+Ry = .0025;
 Ky = lqr(Ay,By,Qy,Ry);
 CLy = Ay - By*Ky;
 Ccy = [Cy; -Ky];
 Ddy = [Dy; 0];  
 RLy = eig(CLy);
 sysr_lqy = ss(CLy,By,Ccy,Ddy);
-x0_y = [max(phi_yaw) 0].';
+x0_y = [max(phi_yaw) 0.04].';
 [Ty, eigY] = eig(Ay);
 xt_y = zeros(length(t),2);
 for i = 1:length(t)
