@@ -80,9 +80,10 @@ Omega_pitch1=linspace(0,-max_speed,length(t_pitch1));
 Omega_pitch2=linspace(0,max_speed,length(t_pitch2));
 Omega_pitch=[Omega_pitch1 Omega_pitch2+Omega_pitch1(end)];
 Omega_max_yaw=max(z)*Izz/(4*Iw*cos(beta));
+Omega_min_yaw=z(6)*Izz/(4*Iw*cos(beta));
 t1=0:0.1:yaw_torque_time;
-Omega_yaw1=linspace(0,Omega_max_yaw,length(t_yaw1));
-Omega_yaw2=linspace(0,-Omega_max_yaw,length(t_yaw2));
+Omega_yaw1=linspace(Omega_min_yaw,Omega_max_yaw,length(t_yaw1));
+Omega_yaw2=linspace(0,-Omega_max_yaw+Omega_min_yaw,length(t_yaw2));
 Omega_yaw=[Omega_yaw1 Omega_yaw2+Omega_yaw1(end)];
 Omega_yaw=[zeros(1,length(t1)) Omega_yaw];
 % assuming a radius 3 times larger than the height of the wheel.
@@ -365,3 +366,19 @@ Hp_pid=N*sin(beta)/(int_resist*Iyy)/(s^2+s*(sin(beta)/Iyy*(N^2/int_resist+c)*(2*
 Hy_pid=N*cos(beta)/(int_resist*Izz)/(s^2+s*(cos(beta)/Izz*(N^2/int_resist+c)*(4*cos(beta)+(Izz-Hzz)/(Iw*cos(beta)))));
 %sisotool(Hy_pid)
 z0=[phi_man_yaw z(7)];
+Hend=H_yaw(end);
+
+%%
+
+
+function [Atot] = matArr(pos1,pos2,mat,Atot)
+if size(Atot,2) > 1
+    Atot(pos1,pos1) = mat(1,1);
+    Atot(pos2,pos1) = mat(2,1);
+    Atot(pos1,pos2) = mat(1,2);
+    Atot(pos2,pos2) = mat(2,2);
+else
+    Atot(pos1) = mat(1);
+    Atot(pos2) = mat(2);
+end
+end
